@@ -1,11 +1,11 @@
 {
   "name": "nodejs-hw-mongodb",
   "version": "1.0.0",
-  "main": "index.js",
+  "main": "src/index.js",
   "type": "module",
   "scripts": {
     "lint": "eslint src/**/*.js",
-    "start": "node ./src/index.js",
+    "start": "node src/index.js",
     "dev": "nodemon src/index.js"
   },
   "repository": {
@@ -22,6 +22,7 @@
   "description": "",
   "dependencies": {
     "cors": "^2.8.5",
+    "dotenv": "^17.2.2",
     "express": "^5.1.0",
     "mongoose": "^8.18.1",
     "pino": "^9.9.5",
