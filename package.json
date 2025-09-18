@@ -6,7 +6,7 @@
   "scripts": {
     "lint": "eslint src/**/*.js",
     "start": "node src/utils/server.js",
-    "dev": "nodemon src/utils/server.js"
+    "dev": "nodemon src/utils/server.js | pino-pretty"
   },
   "repository": {
     "type": "git",
@@ -34,6 +34,7 @@
     "eslint": "^9.35.0",
     "globals": "^16.4.0",
     "nodemon": "^3.1.10",
+    "pino-pretty": "^13.1.1",
     "prettier": "^3.6.2"
   }
 }
