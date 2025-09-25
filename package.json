@@ -1,12 +1,12 @@
 {
   "name": "nodejs-hw-mongodb",
   "version": "1.0.0",
-  "main": "src/index.js",
+  "main": "src/server.js",
   "type": "module",
   "scripts": {
     "lint": "eslint src/**/*.js",
-    "start": "node src/utils/server.js",
-    "dev": "nodemon src/utils/server.js | pino-pretty"
+    "start": "node src/server.js",
+    "dev": "nodemon --watch src --ext js --exec node src/server.js"
   },
   "repository": {
     "type": "git",
@@ -25,6 +25,7 @@
     "dotenv": "^17.2.2",
     "express": "^5.1.0",
     "http-errors": "^2.0.0",
+    "joi": "^18.0.1",
     "mongoose": "^8.18.1",
     "pino": "^9.9.5",
     "pino-http": "^10.5.0"

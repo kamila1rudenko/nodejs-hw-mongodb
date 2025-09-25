@@ -18,3 +18,41 @@ export const updateContactById = async (id, patch) =>
 
 export const deleteContactById = async (id) =>
   Contact.findByIdAndDelete(id).lean();
+
+export async function listContactsWithQuery(params) {
+  const {
+    page = 1,
+    perPage = 10,
+    sortBy = 'name',
+    sortOrder = 'asc',
+    type,
+    isFavourite,
+  } = params;
+
+  const filter = {};
+  if (type) filter.contactType = type;
+  if (typeof isFavourite === 'boolean') filter.isFavourite = isFavourite;
+
+  const sort = { [sortBy]: sortOrder === 'desc' ? -1 : 1 };
+
+  const totalItems = await Contact.countDocuments(filter);
+  const totalPages = Math.max(1, Math.ceil(totalItems / perPage));
+  const safePage = Math.min(Math.max(page, 1), totalPages);
+  const skip = (safePage - 1) * perPage;
+
+  const data = await Contact.find(filter)
+    .sort(sort)
+    .skip(skip)
+    .limit(perPage)
+    .lean();
+
+  return {
+    data,
+    page: safePage,
+    perPage,
+    totalItems,
+    totalPages,
+    hasPreviousPage: safePage > 1,
+    hasNextPage: safePage < totalPages,
+  };
+}

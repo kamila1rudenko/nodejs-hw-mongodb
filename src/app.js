@@ -2,9 +2,9 @@ import express from 'express';
 import cors from 'cors';
 import pino from 'pino';
 import pinoHttp from 'pino-http';
-import { contactsRouter } from '../routers/contacts.js';
-import { notFoundHandler } from '../middlewares/notFoundHandler.js';
-import { errorHandler } from '../middlewares/errorHandler.js';
+import { contactsRouter } from './routers/contacts.js';
+import { notFoundHandler } from './middlewares/notFoundHandler.js';
+import { errorHandler } from './middlewares/errorHandler.js';
 
 export const createApp = () => {
   const app = express();
