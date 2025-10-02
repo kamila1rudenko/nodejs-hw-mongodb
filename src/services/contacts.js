@@ -1,25 +1,26 @@
 import { Contact } from '../models/contacts.js';
 
-export const getAllContacts = async () => Contact.find().lean();
+export async function getContactById(userId, contactId) {
+  return Contact.findOne({ _id: contactId, userId }).lean();
+}
 
-export const getContactById = async (contactId) =>
-  Contact.findById(contactId).lean();
-
-export const createContact = async (payload) => {
-  const doc = await Contact.create(payload);
+export async function createContact(userId, payload) {
+  const doc = await Contact.create({ ...payload, userId });
   return doc.toObject();
-};
+}
 
-export const updateContactById = async (id, patch) =>
-  Contact.findByIdAndUpdate(id, patch, {
+export async function updateContactById(userId, id, patch) {
+  return Contact.findOneAndUpdate({ _id: id, userId }, patch, {
     new: true,
     runValidators: true,
   }).lean();
+}
 
-export const deleteContactById = async (id) =>
-  Contact.findByIdAndDelete(id).lean();
+export async function deleteContactById(userId, id) {
+  return Contact.findOneAndDelete({ _id: id, userId }).lean();
+}
 
-export async function listContactsWithQuery(params) {
+export async function listContactsWithQuery(userId, params) {
   const {
     page = 1,
     perPage = 10,
@@ -29,7 +30,7 @@ export async function listContactsWithQuery(params) {
     isFavourite,
   } = params;
 
-  const filter = {};
+  const filter = { userId };
   if (type) filter.contactType = type;
   if (typeof isFavourite === 'boolean') filter.isFavourite = isFavourite;
 
