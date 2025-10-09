@@ -1,16 +1,31 @@
 import { Contact } from '../models/contacts.js';
+import { uploadToCloudinary } from '../utils/uploadToCloudinary.js';
 
 export async function getContactById(userId, contactId) {
   return Contact.findOne({ _id: contactId, userId }).lean();
 }
 
-export async function createContact(userId, payload) {
-  const doc = await Contact.create({ ...payload, userId });
+export async function createContact(userId, payload, filePath) {
+  const data = { ...payload, userId };
+
+  if (filePath) {
+    const { secure_url } = await uploadToCloudinary(filePath);
+    data.photo = secure_url;
+  }
+
+  const doc = await Contact.create(data);
   return doc.toObject();
 }
 
-export async function updateContactById(userId, id, patch) {
-  return Contact.findOneAndUpdate({ _id: id, userId }, patch, {
+export async function updateContactById(userId, id, patch, filePath) {
+  const update = { ...patch };
+
+  if (filePath) {
+    const { secure_url } = await uploadToCloudinary(filePath);
+    update.photo = secure_url;
+  }
+
+  return Contact.findOneAndUpdate({ _id: id, userId }, update, {
     new: true,
     runValidators: true,
   }).lean();

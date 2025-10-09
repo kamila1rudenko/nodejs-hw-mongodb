@@ -1,9 +1,12 @@
 import crypto from 'node:crypto';
 import bcrypt from 'bcrypt';
 import createHttpError from 'http-errors';
+import jwt from 'jsonwebtoken';
 
 import { User } from '../models/user.js';
 import { Session } from '../models/session.js';
+import { getEnvVariable } from '../utils/getEnvVariable.js';
+import { sendMail } from '../utils/sendMail.js';
 
 const ACCESS_TTL_MS = 15 * 60 * 1000;
 const REFRESH_TTL_MS = 30 * 24 * 60 * 60 * 1000;
@@ -98,4 +101,61 @@ export async function refreshSession(refreshToken) {
 export async function logoutSession(sessionId, refreshToken) {
   if (!sessionId || !refreshToken) return;
   await Session.deleteOne({ _id: sessionId, refreshToken });
+}
+
+export async function requestPasswordReset(email) {
+  const user = await User.findOne({ email: String(email).toLowerCase() });
+  if (user === null) {
+    throw new createHttpError.NotFound('User not found!');
+  }
+
+  const token = jwt.sign(
+    { sub: user.email },
+    getEnvVariable('JWT_SECRET'),
+    { expiresIn: '5m' }, // 5 минут
+  );
+
+  const resetLink = `${getEnvVariable('APP_DOMAIN')}/reset-password?token=${token}`;
+
+  try {
+    await sendMail({
+      to: user.email,
+      subject: 'Reset password instruction',
+      html: `
+        <div>
+          <p>To reset your account password please follow this
+            <a href="${resetLink}">link</a>
+          </p>
+        </div>
+      `,
+    });
+  } catch {
+    throw new createHttpError.InternalServerError(
+      'Failed to send the email, please try again later.',
+    );
+  }
+}
+
+/** КРОК 4 — обновление пароля по токену */
+export async function resetPassword(token, newPassword) {
+  try {
+    const decoded = jwt.verify(token, getEnvVariable('JWT_SECRET'));
+    const email = decoded.sub;
+
+    const user = await User.findOne({ email });
+    if (user === null) {
+      throw new createHttpError.NotFound('User not found!');
+    }
+
+    const hashed = await bcrypt.hash(newPassword, 10);
+    await User.updateOne({ _id: user._id }, { password: hashed });
+
+    // инвалидируем текущую сессию
+    await Session.deleteOne({ userId: user._id });
+  } catch (err) {
+    if (err.name === 'TokenExpiredError' || err.name === 'JsonWebTokenError') {
+      throw new createHttpError(401, 'Token is expired or invalid.');
+    }
+    throw err;
+  }
 }
