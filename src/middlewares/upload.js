@@ -1,11 +1,19 @@
+import fs from 'node:fs';
 import path from 'node:path';
 import multer from 'multer';
 
+const TMP_DIR = path.resolve('tmp');
+
+if (!fs.existsSync(TMP_DIR)) {
+  fs.mkdirSync(TMP_DIR, { recursive: true });
+}
+
 const storage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, path.resolve('tmp')),
+  destination: (req, file, cb) => cb(null, TMP_DIR),
   filename: (req, file, cb) => {
-    const uniquePrefix = Date.now() + '-' + Math.round(Math.random() * 1e9);
-    cb(null, `${uniquePrefix}_${file.originalname}`);
+    const unique = Date.now() + '-' + Math.round(Math.random() * 1e9);
+    const safe = file.originalname.replace(/\s+/g, '_');
+    cb(null, `${unique}_${safe}`);
   },
 });
 

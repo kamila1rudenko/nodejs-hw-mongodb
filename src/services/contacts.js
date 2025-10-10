@@ -1,3 +1,4 @@
+import fs from 'node:fs/promises';
 import { Contact } from '../models/contacts.js';
 import { uploadToCloudinary } from '../utils/uploadToCloudinary.js';
 
@@ -9,8 +10,12 @@ export async function createContact(userId, payload, filePath) {
   const data = { ...payload, userId };
 
   if (filePath) {
-    const { secure_url } = await uploadToCloudinary(filePath);
-    data.photo = secure_url;
+    try {
+      const { secure_url } = await uploadToCloudinary(filePath);
+      data.photo = secure_url;
+    } finally {
+      await fs.unlink(filePath).catch(() => {});
+    }
   }
 
   const doc = await Contact.create(data);
@@ -21,8 +26,12 @@ export async function updateContactById(userId, id, patch, filePath) {
   const update = { ...patch };
 
   if (filePath) {
-    const { secure_url } = await uploadToCloudinary(filePath);
-    update.photo = secure_url;
+    try {
+      const { secure_url } = await uploadToCloudinary(filePath);
+      update.photo = secure_url;
+    } finally {
+      await fs.unlink(filePath).catch(() => {});
+    }
   }
 
   return Contact.findOneAndUpdate({ _id: id, userId }, update, {
