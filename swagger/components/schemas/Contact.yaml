@@ -1,0 +1,34 @@
+type: object
+properties:
+  _id:
+    type: string
+    example: 68de953c0fcf3f0c5746eed1
+  userId:
+    type: string
+  name:
+    type: string
+    example: John Smith
+  phoneNumber:
+    type: string
+    example: +380991112233
+  email:
+    type: [string, 'null']
+    format: email
+    example: john@example.com
+  isFavourite:
+    type: boolean
+    default: false
+  contactType:
+    type: string
+    enum: [work, home, personal]
+    example: work
+  photo:
+    type: [string, 'null']
+    description: https://res.cloudinary.com/dbtx6wtmg/image/upload/v1760094719/iigycgafzdnaslrkc1qz.jpg
+  createdAt:
+    type: string
+    format: date-time
+  updatedAt:
+    type: string
+    format: date-time
+required: [_id, name, phoneNumber, contactType]

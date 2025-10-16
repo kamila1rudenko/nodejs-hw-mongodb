@@ -3,6 +3,11 @@ import cors from 'cors';
 import pino from 'pino';
 import pinoHttp from 'pino-http';
 import cookieParser from 'cookie-parser';
+import swaggerUI from 'swagger-ui-express';
+import { createRequire } from 'module';
+const require = createRequire(import.meta.url);
+
+const swaggerDoc = require('../docs/swagger.json');
 
 import { contactsRouter } from './routers/contacts.js';
 import { authRouter } from './routers/auth.js';
@@ -29,6 +34,8 @@ export const createApp = () => {
   app.use(express.json());
   app.use(cookieParser());
   app.use(pinoHttp({ logger }));
+
+  app.use('/api-docs', swaggerUI.serve, swaggerUI.setup(swaggerDoc));
 
   app.use('/auth', authRouter);
   app.use('/contacts', authenticate, contactsRouter);
