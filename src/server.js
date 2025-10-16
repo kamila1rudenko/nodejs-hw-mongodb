@@ -1,51 +1,30 @@
-import express from 'express';
-import cors from 'cors';
-import pinoHttp from 'pino-http';
-import { getAllContacts, getContactById } from './services/contacts.js';
+import 'dotenv/config';
+import { createApp } from './app.js';
+import { initMongoConnection } from './db.js';
 
-export const startServer = async () => {
-  const app = express();
+const {
+  MONGODB_URI,
+  MONGODB_USER,
+  MONGODB_PASSWORD,
+  MONGODB_URL,
+  MONGODB_DB,
+  PORT = 3000,
+} = process.env;
 
-  app.use(cors());
-  app.use(express.json());
-  app.use(pinoHttp({}));
+const uri =
+  MONGODB_URI ??
+  `mongodb+srv://${MONGODB_USER}:${MONGODB_PASSWORD}@${MONGODB_URL}/${MONGODB_DB}?retryWrites=true&w=majority`;
 
-  app.get('/contacts', async (req, res, next) => {
-    try {
-      const contacts = await getAllContacts();
-      res.status(200).json({
-        status: 200,
-        message: 'Successfully found contacts!',
-        data: contacts,
-      });
-    } catch (e) {
-      next(e);
-    }
-  });
+const start = async () => {
+  await initMongoConnection(uri);
 
-  app.get('/contacts/:contactId', async (req, res, next) => {
-    try {
-      const { contactId } = req.params;
-      const contact = await getContactById(contactId);
-
-      if (!contact) {
-        return res.status(404).json({ message: 'Contact not found' });
-      }
-
-      res.status(200).json({
-        status: 200,
-        message: `Successfully found contact with id ${contactId}!`,
-        data: contact,
-      });
-    } catch (e) {
-      next(e);
-    }
-  });
-
-  app.use((req, res) => res.status(404).json({ message: 'Not found' }));
-
-  const PORT = process.env.PORT || 3000;
+  const app = createApp();
   app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
   });
 };
+
+start().catch((err) => {
+  console.error('Fatal error:', err);
+  process.exit(1);
+});
